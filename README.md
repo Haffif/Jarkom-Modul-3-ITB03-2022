@@ -116,6 +116,13 @@ selanjutnya seperti biasa setelah melakukan konfigurasi maka restart dari DHCP S
 ```
 service isc-dhcp-server restart
 ```
+pengecekkan IP di client:
+**NewstonCastle**
+![](gambar/8.png)
+
+**KemonoPark**
+![](gambar/9.png)
+
 
 ## **Soal 5**
 ---
