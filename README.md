@@ -14,7 +14,7 @@ Loid bersama Franky berencana membuat peta tersebut dengan kriteria WISE sebagai
 Pertama-tama kami membuat sebuah node yang terhubung dengan internet dengan nama NAT1. Node tersebut kemudian disambungkan dengan router ostania melalui interface `nat0` menuju interface `eth0`. Selanjutnya persiapkan peletakan node-node sesuai dengan yang ada pada soal shift seperti berikut:
 ![](gambar/1.png)
 
-Kemudian setting network dari masing-masing node ubuntu dengan fitur Edit network configuration seperti berikut:
+Kemudian setting network dari masing-masing node ubuntu dengan fitur Edit network configuration seperti berikut: <br><br>
 **WISE sebagai DNS Server**
 ![](gambar/2.png)
 
@@ -24,12 +24,21 @@ Kemudian setting network dari masing-masing node ubuntu dengan fitur Edit networ
 **Berlint sebagai Proxy Server**
 ![](gambar/4.png)
 
+**SSS, Garden, NewstonCastle, dan kemonoPark sebagai Client**
+![](gambar/17.png)
+
+**Eden sebagai Client (alamat yang tetap)**
+![](gambar/18.png)
 
 ## **Soal 2**
 ---
 Dan Ostania sebagai DHCP Relay. Loid dan Franky menyusun peta tersebut dengan hati-hati dan teliti.
 ### **Penyelesaian Soal 2**
-Pertama-tama kami menyamarkan paket dengan command
+**Ostania sebagai DHCP relay**
+
+![](gambar/19.png)
+
+Lalu, kami menyamarkan paket dengan command
 ```
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 10.46.0.0/16
 ```
@@ -111,11 +120,11 @@ service isc-dhcp-server restart
 ```
 
 Adapun untuk pengecekan IP terhadap client di Switch1 adalah sebagai berikut:
-- **SSS**
+- **SSS** <br> 
 ![](gambar/6.png)
 
 
-- **Garden**
+- **Garden** <br>
 ![](gambar/7.png)
 
 
@@ -142,15 +151,15 @@ service isc-dhcp-server restart
 ```
 Adapun untuk pengecekan IP terhadap client di Switch3 adalah sebagai berikut:
 
-- **Eden**
+- **Eden** <br>
 ![](gambar/15.png)
 
 
-- **NewstonCastle**
+- **NewstonCastle** <br>
 ![](gambar/8.png)
 
 
-- **KemonoPark**
+- **KemonoPark** <br>
 ![](gambar/9.png)
 
 
@@ -182,23 +191,23 @@ service bind9 restart
 ```
 Bukti hasil terkoneksi Client dengan DNS Server dan terhubung internet:
 
-- **SSS**
+- **SSS** <br>
 ![](gambar/10.png)
 
 
-- **Garden**
+- **Garden** <br>
 ![](gambar/11.png)
 
 
-- **Eden**
+- **Eden** <br>
 ![](gambar/12.png)
 
 
-- **NewstonCastle**
+- **NewstonCastle** <br>
 ![](gambar/13.png)
 
 
-- **KemonoPark**
+- **KemonoPark** <br>
 ![](gambar/14.png)
 
 
