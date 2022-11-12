@@ -90,9 +90,12 @@ service isc-dhcp-server restart
 ```
 pengecekkan IP di client:
 **SSS**
+
 ![](gambar/6.png)
 
+
 **Garden**
+
 ![](gambar/7.png)
 
 
@@ -118,9 +121,12 @@ service isc-dhcp-server restart
 ```
 pengecekkan IP di client:
 **NewstonCastle**
+
 ![](gambar/8.png)
 
+
 **KemonoPark**
+
 ![](gambar/9.png)
 
 
