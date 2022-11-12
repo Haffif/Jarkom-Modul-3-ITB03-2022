@@ -88,6 +88,12 @@ Ketika konfigurasi sudah, maka yang perlu dilakukan adalah restart dari DHCP Ser
 ```
 service isc-dhcp-server restart
 ```
+pengecekkan IP di client:
+**SSS**
+![](gambar/6.png)
+
+**Garden**
+![](gambar/7.png)
 
 
 ## **Soal 4**
