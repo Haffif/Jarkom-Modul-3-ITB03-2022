@@ -49,6 +49,27 @@ Kemudian aktifkan perubahan sysctl.conf dengan perintah `sysctl -p`. Lalu perbah
 ---
 Semua client yang ada HARUS menggunakan konfigurasi IP dari DHCP Server. Client yang melalui Switch1 mendapatkan range IP dari [prefix IP].1.50 - [prefix IP].1.88 dan [prefix IP].1.120 - [prefix IP].1.155
 ### **Penyelesaian Soal 3**
+**[ Ostania ] -> DHCP Relay** <br>
+Lakukan konfigurasi pada Fosha dengan melakukan edit file `/etc/default/isc-dhcp-relay` dengan konfigurasi berikut:
+```
+# Defaults for isc-dhcp-relay initscript
+# sourced by /etc/init.d/isc-dhcp-relay
+# installed at /etc/default/isc-dhcp-relay by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# What servers should the DHCP relay forward requests to?
+SERVERS="10.45.2.4"
+
+# On what interfaces should the DHCP relay (dhrelay) serve DHCP requests?
+INTERFACES="eth1 eth3 eth2"
+
+# Additional options that are passed to the DHCP relay daemon?
+OPTIONS=""
+```
+**[ Westalis ] -> DHCP Server** <br>
 Pertama-tama kami melakukan tahap persiapan dengan menyambungkan `Westalis` dengan `Ostania` yang sebagai Router dengan command:
 ```
 echo 'nameserver 192.168.122.1' > /etc/resolv.conf
@@ -69,7 +90,7 @@ Kemudian kami mengkonfigurasikan Client pada Switch 1 tepatnya pada file `dhcpd.
 ```
 yang mana subnet ini hanya harus dideklarasikan atau dikenali tetapi tidak harus memiliki settingan dhcp.
 ```
-subnet 10.46.2.0 netmask 255.255.255.248{
+subnet 10.46.2.0 netmask 255.255.255.255{
 }
 ```
 Selanjutnya setting subnet Client sesuai dengan range yang diminta pada soal sebagai berikut:
@@ -88,14 +109,13 @@ Ketika konfigurasi sudah, maka yang perlu dilakukan adalah restart dari DHCP Ser
 ```
 service isc-dhcp-server restart
 ```
-pengecekkan IP di client:
-**SSS**
 
+Adapun untuk pengecekan IP terhadap client di Switch1 adalah sebagai berikut:
+- **SSS**
 ![](gambar/6.png)
 
 
-**Garden**
-
+- **Garden**
 ![](gambar/7.png)
 
 
@@ -103,6 +123,7 @@ pengecekkan IP di client:
 ---
 Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.10 - [prefix IP].3.30 dan [prefix IP].3.60 - [prefix IP].3.85
 ### **Penyelesaian Soal 4**
+**[ Westalis ] -> DHCP Server** <br>
 Dalam hal ini kami hanya cukup memperbaharui file konfigurasi dhcpd.conf dengan pendefinisian dari subnet yang ada pada Switch 3 dengan command:
 ```
 subnet 10.46.3.0 netmask 255.255.255.0 {
@@ -119,14 +140,17 @@ selanjutnya seperti biasa setelah melakukan konfigurasi maka restart dari DHCP S
 ```
 service isc-dhcp-server restart
 ```
-pengecekkan IP di client:
-**NewstonCastle**
+Adapun untuk pengecekan IP terhadap client di Switch3 adalah sebagai berikut:
 
+- **Eden**
+![](gambar/15.png)
+
+
+- **NewstonCastle**
 ![](gambar/8.png)
 
 
-**KemonoPark**
-
+- **KemonoPark**
 ![](gambar/9.png)
 
 
@@ -134,17 +158,12 @@ pengecekkan IP di client:
 ---
 Client mendapatkan DNS dari WISE dan client dapat terhubung dengan internet melalui DNS tersebut.
 ### **Penyelesaian Soal 5**
-Dalam hal ini kami membuat setiap node Client dengan network configuration sebagai berikut:
-![](gambar/5.png)
+**[ Westalis ] -> DHCP Server** <br>
+Untuk client mendapatkan DNS dari WISE diperlukan konfigurasi pada file `/etc/dhcp/dhcpd.conf` pada Westalis dengan `option domain-name-servers 10.45.2.2;`
 
-Lalu agar dapat terhubung dengan internet akan tetapi melalui IP DNS Server maka perlu dilakukan forwarders pada named.conf.options dengan command berikut. Tetapi hal ini tetap memerlukan tahap persiapan dengan menghubungkan node `WISE` dengan Router `Ostania` dan instalasi dari bind9 untuk configurasinya sebagai berikut:
+**[ WISE ] -> DNS Server** <br>
+Supaya semua client dapat terhubung internet pada WISE diberikan konfigurasi pada file `/etc/bind/named.conf.options` dengan sebagai berikut:
 ```
-# WISE
-echo "nameserver 192.168.122.1" > /etc/resolv.conf
-        apt-get update
-        apt-get install bind9 -y
-
-echo "
 options {
         directory \"/var/cache/bind\";
         forwarders {
@@ -156,33 +175,79 @@ options {
         auth-nxdomain no;    # conform to RFC1035
         listen-on-v6 { any; };
 };
-" > /etc/bind/named.conf.options
 ```
 Setelah sudah maka dapat melakukan restart dari Bind9 pada `WISE` dengan command:
 ```
 service bind9 restart
 ```
 Bukti hasil terkoneksi Client dengan DNS Server dan terhubung internet:
-**SSS**
 
+- **SSS**
 ![](gambar/10.png)
 
 
-**Garden**
-
+- **Garden**
 ![](gambar/11.png)
 
 
-**Eden**
-
+- **Eden**
 ![](gambar/12.png)
 
 
-**NewstonCastle**
-
+- **NewstonCastle**
 ![](gambar/13.png)
 
 
-**KemonoPark**
-
+- **KemonoPark**
 ![](gambar/14.png)
+
+
+## **Soal 6**
+Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch1 selama 5 menit sedangkan pada client yang melalui Switch3 selama 10 menit. Dengan waktu maksimal yang dialokasikan untuk peminjaman alamat IP selama 115 menit
+
+### **Penyelesaian Soal 6**
+**[ Westalis ] -> DHCP Server** <br>
+Pada subnet interface switch 1 dan 3 ditambahkan konfigurasi berikut pada file `/etc/dhcp/dhcpd.conf`
+
+```
+subnet 10.45.1.0 netmask 255.255.255.0 {
+    ...
+    default-lease-time 300; 
+    max-lease-time 6900;
+    ...
+}
+subnet 10.45.3.0 netmask 255.255.255.0 {
+    ...
+    default-lease-time 600;
+    max-lease-time 6900;
+    ...
+}
+```
+
+
+## **Soal 7**
+Loid dan Franky berencana menjadikan Eden sebagai server untuk pertukaran informasi dengan alamat IP yang tetap dengan IP [prefix IP].3.13.
+
+### **Penyelesaian Soal 7**
+**[ Westalis ] -> DHCP Server** <br>
+Menambahkan konfigurasi untuk fixed address pada `/etc/dhcp/dhcpd.conf` dengan sebagai berikut:
+
+```
+host Eden {
+    hardware ethernet 4e:af:14:af:af:a3;
+    fixed-address 10.46.3.13;
+}
+```
+
+**[ Eden ]** <br>
+Kemudian, tidak lupa untuk mengganti konfigurasi pada file `/etc/network/interfaces` dengan sebagai berikut:
+
+```
+auto eth0
+iface eth0 inet dhcp
+hwaddress ether 4e:af:14:af:af:a3
+```
+
+Maka Eden akan mendapatkan IP yang tetap yaitu `10.46.3.13`. Untuk dokumentasi yaitu sebagai berikut:
+
+![](gambar/16.png)
