@@ -1,5 +1,4 @@
 # Jarkom-Modul-3-ITB03-2022
-# Jarkom-Modul-3-ITB03-2022
 ---
 Kelompok ITB03:
 1. Haffif Rasya Fauzi - 5027201002
