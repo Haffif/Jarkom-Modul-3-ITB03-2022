@@ -163,4 +163,26 @@ Setelah sudah maka dapat melakukan restart dari Bind9 pada `WISE` dengan command
 service bind9 restart
 ```
 Bukti hasil terkoneksi Client dengan DNS Server dan terhubung internet:
+**SSS**
 
+![](gambar/10.png)
+
+
+**Garden**
+
+![](gambar/11.png)
+
+
+**Eden**
+
+![](gambar/12.png)
+
+
+**NewstonCastle**
+
+![](gambar/13.png)
+
+
+**KemonoPark**
+
+![](gambar/14.png)
