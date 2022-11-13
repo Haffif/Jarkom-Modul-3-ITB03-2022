@@ -258,5 +258,233 @@ hwaddress ether 4e:af:14:af:af:a3
 ```
 
 Maka Eden akan mendapatkan IP yang tetap yaitu `10.46.3.13`. Untuk dokumentasi yaitu sebagai berikut:
-
+<br>
 ![](gambar/16.png)
+
+
+## **Soal 8**
+SSS, Garden, dan Eden digunakan sebagai client Proxy agar pertukaran informasi dapat terjamin keamanannya, juga untuk mencegah kebocoran data.
+
+Pada Proxy Server di Berlint, Loid berencana untuk mengatur bagaimana Client dapat mengakses internet. Artinya setiap client harus menggunakan Berlint sebagai HTTP & HTTPS proxy. Adapun kriteria pengaturannya pertamanya adalah sebagai berikut:
+
+```
+Client hanya dapat mengakses internet diluar (selain) hari & jam kerja (senin-jumat 08.00 - 17.00) dan hari libur (dapat mengakses 24 jam penuh)
+```
+
+### **Penyelesaian Soal 8**
+**[ Westalis ] -> DNS Server** <br>
+Menambahkan konfigurasi domain `loid-work.com` dan `franky-work.com` pada WISE:
+
+```
+echo "
+zone \"loid-work.com\" {
+        type master;
+        file \"/etc/bind/jarkom/loid-work.com\";
+};
+zone \"franky-work.com\" {
+        type master;
+        file \"/etc/bind/jarkom/franky-work.com\";
+};
+"> /etc/bind/named.conf.local
+```
+
+Kemudian, menambahkan domain sebagai berikut:
+```
+echo "
+;
+; BIND data file for local loopback interface
+;
+\$TTL    604800
+@       IN      SOA     franky-work.com. root.franky-work.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@               IN      NS      franky-work.com.
+@               IN      A       192.212.2.2     ; IP WISE
+www             IN      CNAME   franky-work.com.
+" > /etc/bind/jarkom/franky-work.com
+
+echo "
+;
+; BIND data file for local loopback interface
+;
+\$TTL    604800
+@       IN      SOA     loid-work.com. root.loid-work.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      loid-work.com.
+@       IN      A       192.212.2.2     ; IP WISE
+www     IN      CNAME   loid-work.com.
+" > /etc/bind/jarkom/loid-work.com
+```
+
+Lalu, memberikan konfigurasi pada masing-masing domain sebagai berikut:
+
+```
+echo '
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+        ServerName loid-work.com
+ 
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+' > /etc/apache2/sites-available/loid-work.com.conf
+
+echo '
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        DocumentRoot /var/www/html
+        ServerName franky-work.com
+ 
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+' > /etc/apache2/sites-available/franky-work.com.conf
+```
+
+Selanjutnya, Memberikan Konfigurasi web agar bisa dicek melalui client proxy dengan command `lynx`
+
+**[ Berlint ] -> Proxy Server** <br>
+Mendeklarasikan waktu kerja dan diluar kerja, kemudian memberikan hak akses diluar jam kerja dengan sebagai berikut:
+
+```
+echo '
+acl WORKTIME time MTWHF 08:00-17:00
+acl WEEKEND time SA 00:00-23:59
+' > /etc/squid/acl-time.conf
+```
+
+```
+echo '
+...
+http_access allow !WORKTIME
+http_access deny all
+...
+' > /etc/squid/squid.conf
+```
+
+Untuk dokumentasi yaitu sebagai berikut:
+- Akses internet pada hari senin jam 10.00:<br>
+![](gambar/23.png)
+
+- Akses internet pada hari senin jam 20.00:<br>
+![](gambar/21.png)
+
+
+## **Soal 9**
+Adapun pada hari dan jam kerja sesuai nomor (1), client hanya dapat mengakses domain loid-work.com dan franky-work.com (IP tujuan domain dibebaskan)
+
+### **Penyelesaian Soal 9**
+Mendeklarasikan sejumlah domain kerja dan memberikan hak akses pada saat jam kerja
+
+**[ Berlint ] -> Proxy Server** <br>
+```
+echo '
+loid-work.com
+franky-work.com
+' > /etc/squid/work-sites.acl
+```
+
+```
+echo '
+acl WORKSITE dstdomain "/etc/squid/work-sites.acl"
+' > /etc/squid/acl-site.conf
+```
+
+```
+echo '
+...
+http_access allow WORKSITE WORKTIME
+...
+' > /etc/squid/squid.conf
+```
+
+Untuk dokumentasi yaitu sebagai berikut:
+- Melakukan akses pada loid-work.com dan franky-work.com ketika jam kerja:<br>
+![](gambar/22.png)
+- Melakukan akses pada loid-work.com dan franky-work.com diluar jam kerja:<br>
+![](gambar/23.png) <br>
+![](gambar/24.png)
+## **Soal 10**
+Saat akses internet dibuka, client dilarang untuk mengakses web tanpa HTTPS. (Contoh web HTTP: http://example.com)
+
+### **Penyelesaian Soal 10**
+**[ Berlint ] -> Proxy Server** <br>
+
+Port dari HTTPS adalah 443, maka akan deklarasikan terlebih dahulu portnya lalu melarang semua akses yang tidak melewati port 443 dengan sebagai berikut:
+
+```
+echo '
+acl GOODPORT port 443
+acl CONNECT method CONNECT
+' > /etc/squid/acl-port.conf
+```
+
+```
+echo '
+...
+http_access deny !GOODPORT
+http_access deny CONNECT !GOODPORT
+...
+' > /etc/squid/squid.conf
+```
+
+Untuk dokumentasi yaitu sebagai berikut:
+- Web HTTP:<br>
+![](gambar/20.jpg)
+- Web HTTPS:<br>
+![](gambar/21.png)
+
+## **Soal 11**
+Agar menghemat penggunaan, akses internet dibatasi dengan kecepatan maksimum 128 Kbps pada setiap host (Kbps = kilobit per second; lakukan pengecekan pada tiap host, ketika 2 host akses internet pada saat bersamaan, keduanya mendapatkan speed maksimal yaitu 128 Kbps)
+
+### **Penyelesaian Soal 11**
+**[ Berlint ] -> Proxy Server** <br>
+Untuk membatasi kecepatan internet menjadi 128Kbps akan dilakukan dengan mengubah parameter internet menjadi 16000/16000 dengan sebagai berikut:
+
+```
+echo '
+delay_pools 1
+delay_class 1 1
+delay_parameters 1 16000/16000
+' > /etc/squid/acl-banwidth.conf
+```
+
+Untuk dokumentasi yaitu sebagai berikut:
+<br>
+![](gambar/25.jpg)
+
+
+## **Soal 12**
+Setelah diterapkan, ternyata peraturan nomor (4) mengganggu produktifitas saat hari kerja, dengan demikian pembatasan kecepatan hanya diberlakukan untuk pengaksesan internet pada hari libur
+
+### **Penyelesaian Soal 12**
+**[ Berlint ] -> Proxy Server** <br>
+kita menambahkan konfigurasi bandwidth menjadi seperti berikut agar pembatasan kecepatan hanya diberlakukan untuk pengaksesan internet pada hari libur:
+
+```
+echo '
+delay_pools 1
+delay_class 1 1
+delay_access 1 allow WEEKEND
+delay_parameters 1 16000/16000
+' > /etc/squid/acl-banwidth.conf
+```
+
+Untuk dokumentasi yaitu sebagai berikut:
+<br>
+![](gambar/26.png)
+
+
+## **Kendala**
+---
+Terkadang syntax dalam script error dalam melakukan percobaan proxy dengan ketentuan yang terdapat pada tabel dan tidak berjalan sesuai dengan apa yang di write dalam script.
